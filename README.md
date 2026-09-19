@@ -1,6 +1,6 @@
 # Sparseness Optimized Feature Importance for Image Classification
 
-Sparseness Optimized Feature Importance (SOFI) is a model agnostic, declarative post hoc explainer. An explanation takes the form of a ranking of image segments, and its quality is the degradation score obtained after cumulative marginalization. This package is the image counterpart of `sofits`. It supports grayscale and color problems, confines both the ranking and the marginalization to a region of interest when one is given, and works with any classifier that yields class probabilities, including every convolutional network, vision transformer and hybrid backbone published through `torchvision`, `timm`, `transformers` and Keras.
+Sparseness Optimized Feature Importance (SOFI) is a model-agnostic, declarative post hoc explainer. An explanation takes the form of a ranking of image segments, and its quality is the degradation score obtained after cumulative marginalization. This package is the image counterpart of `sofits`. It supports grayscale and color problems, confines both the ranking and the marginalization to a region of interest when one is given, and works with any classifier that yields class probabilities, including every convolutional network, vision transformer and hybrid backbone published through `torchvision`, `timm`, `transformers` and Keras.
 
 ## Installation
 
@@ -73,13 +73,13 @@ Two curves are derived from a ranking. The MoRF curve marginalizes the most rele
 
 The search works on the raw response of the model and on nothing else, as in segment perturbation, namely the probability the model assigns to the class it predicted before any perturbation. Ground truth never enters, which keeps explanations independent of the error of the model.
 
-Normalization never enters the optimization, since a scale that depends on the ranking being scored would change what is being maximized. It is applied afterwards, for reporting and for drawing, and it follows the convention of the perturbation curve literature. The response of the unperturbed image is placed at one and the response of the fully marginalized image at zero. Both anchors belong to the model and the instance rather than to a ranking, so every ranking scored on the same image shares them, the reported score is the optimized score divided by one positive constant, and no ordering can change. Reported curves therefore start at one and stay inside the unit interval, so figures from different images, models and problems can be read on the same axis.
+Normalization never enters the optimization, since a scale that depends on the ranking being scored would change what is being maximized. It is applied afterwards, for reporting and for drawing, and it follows the convention of the perturbation curve literature. The response of the unperturbed image is placed at one and the response of the fully marginalized image at zero. Both anchors belong to the model and the instance rather than to a ranking, so every ranking scored on the same image shares them. The reported score is the optimized score divided by one positive constant, and no ordering can change. Reported curves therefore start at one and stay inside the unit interval, so figures from different images, models and problems can be read on the same axis.
 
 The anchors are read off a reference sweep that marginalizes every segment on its own and then follows the resulting greedy ordering cumulatively, which also produces the fully marginalized response. Should the response climb substantially above the unperturbed one, the scale widens to the extremes the sweep observed and a warning names the cause, so that a curve is never flattened against a false ceiling. That warning is worth reading rather than silencing, because on images it usually means the substitution left a patch the model reads with confidence, and `marginalization="auto"` is the direct remedy.
 
 ## Two diagnostics beside the score
 
-A degradation score says how the two curves separate. It says nothing about whether the model moved at all, and nothing about where the curve ends. On images both omissions matter, and every explanation therefore carries two further figures.
+A degradation score says how the two curves separate. It says nothing about whether the model moved at all, and nothing about where the curve ends. On images, both omissions matter, and every explanation therefore carries two further figures.
 
 `explanation.drop` is how far the response falls at its lowest, as a fraction of where it started. An operator that leaves the response within a thousandth of its starting value still produces a curve, because reporting maps the highest response observed onto one and the lowest onto zero, and that mapping stretches a range of a few thousandths across the whole unit interval. The score is then large and describes numerical noise. On the bundled problem the two highest scoring operators, at 0.81 and 0.77, both move the model by one thousandth and never change the predicted class.
 
@@ -103,7 +103,7 @@ Segments are the unit of interpretation and they belong to the user. A radiologi
 | `"mask"` | An integer label map supplied by the user | `mask` |
 | an array | Read directly as the label map | none |
 
-SLIC is the only procedure the package offers. The alternatives of `scikit-image` and the rectangular patch grid were removed rather than kept as options, since a second vocabulary that no one uses is a maintenance cost and a distraction from the two choices that matter, namely the segment count and the region of interest. Segments computed by another library still enter, as a label map.
+SLIC is the only procedure the package offers. The alternatives of `scikit-image` and the rectangular patch grid were removed rather than kept as options, since a second vocabulary that no one uses is a maintenance cost and a distraction from the two choices that matter, namely the segment count and the region of interest. Segments computed by another library still enter as a label map.
 
 ```python
 from sofiimg import SOFIExplainer, segmentation_from_mask
@@ -136,26 +136,26 @@ The package answers this with a `mask` argument, and the demonstration pairs it 
 | Region of interest | the image into the anatomy of interest and everything else | the data and the model, so it belongs outside the package |
 | Segments to rank | that anatomy into segments | the explainer, through `mask` |
 
-The first stage restricts what the classifier may look at, by multiplying the image with a binary mask before the model ever sees it. The second restricts what the explanation may talk about. Neither is useful alone, since a model that reads the shoulder cannot be explained honestly inside the lungs, and a model that reads only the lungs still needs its evidence localized within them.
+The first stage restricts what the classifier may look at by multiplying the image with a binary mask before the model ever sees it. The second restricts what the explanation may talk about. Neither is useful alone, since a model that reads the shoulder cannot be explained honestly inside the lungs, and a model that reads only the lungs still needs its evidence localized within them.
 
 ```python
 X = preprocess(images, masks)                        # the model sees the anatomy alone
 explanation = explainer.explain(X[i], mask=roi[i])  # the ranking stays inside it
 ```
 
-The mask reaches the explainer through three routes, namely a per-call argument on `explain`, `segment`, `inspect`, `score_ranking` and `build_objective`, the `mask` argument of the constructor when one segment serves every image, and `segmentation_params` when it is more natural to group it with the other segmentation settings. It is read as boolean, so a mask stored as bytes needs no conversion, and it must cover the image it restricts at the same resolution, since a mask computed elsewhere would otherwise name pixels that are not the ones it ranks.
+The mask reaches the explainer through three routes, namely a per-call argument on `explain`, `segment`, `inspect`, `score_ranking` and `build_objective`, the `mask` argument of the constructor when one segment serves every image, and `segmentation_params` when it is more natural to group it with the other segmentation settings. It is read a boolean, so a mask stored as bytes needs no conversion, and it must cover the image it restricts at the same resolution, since a mask computed elsewhere would otherwise name pixels that are not the ones it ranks.
 
 Segments are then grown inside the segment alone and every pixel outside stays out of the partition, with a label of minus one. Such a pixel can never enter a ranking and is never marginalized, so the confinement is structural rather than a filter applied afterwards.
 
-On the bundled problem the effect is stark. The same architecture reaches 0.935 on the whole image and 0.912 on the lung fields, and sixty-five percent of the pixels the unrestricted model relies on lie outside the lungs. The accuracy the first stage costs is the shortcut it removes.
+On the bundled problem, the effect is stark. The same architecture reaches 0.935 on the whole image and 0.912 on the lung fields, and sixty-five percent of the pixels the unrestricted model relies on lie outside the lungs. The accuracy the first stage costs is the shortcut it removes.
 
 Where masks are not given, the first stage is a segmentation network, typically a U-Net, and nothing downstream changes. The bundled dataset carries expert annotations, so the demonstration loads them instead.
 
 ## Marginalizing a segment
 
-Marginalizing a tabular feature is easy, since one statistic of the training column carries no instance level information. An image segment is harder. A flat patch is itself a pattern, and a model may read the sharp contour it leaves behind as evidence for some class, which keeps the marginalized image informative and the curve misleading. Fifteen operators are available in two families, and the right one is problem dependent.
+Marginalizing a tabular feature is easy, since one statistic of the training column carries no instance-level information. An image segment is harder. A flat patch is itself a pattern, and a model may read the sharp contour it leaves behind as evidence for some class, which keeps the marginalized image informative and the curve misleading. Fifteen operators are available in two families, and the right one is problem-dependent.
 
-**Class agnostic operators** erase the content of a segment without steering the prediction anywhere. A ranking obtained this way answers which segments the prediction relies on, which is the question the method was designed for. These are the default.
+** Class-agnostic operators** erase the content of a segment without steering the prediction anywhere. A ranking obtained this way answers which segments the prediction relies on, which is the question the method was designed for. These are the default.
 
 | Name | Substitution |
 | --- | --- |
@@ -168,7 +168,7 @@ Marginalizing a tabular feature is easy, since one statistic of the training col
 | `"inpaint"` | A biharmonic reconstruction from the border of the segment, the most faithful and the most expensive |
 | `"background"` | The matching pixels of several training images, averaged over the draws |
 
-Every constant reads the statistic of the channel it is writing into rather than a value pooled over all of them. A pipeline that standardizes with the constants of a pretrained backbone leaves the channels centered on different values, so a pooled constant would neutralize one channel while introducing a visible cast in another. The two coincide when the image is grayscale.
+Every constant reads the statistics of the channel it is writing into rather than a value pooled over all of them. A pipeline that standardizes with the constants of a pretrained backbone leaves the channels centered on different values, so a pooled constant would neutralize one channel while introducing a visible cast in another. The two coincide when the image is grayscale.
 
 `"blur"` is the image counterpart of the `"linear"` operator of the time series package, since both remove the content of a segment while leaving the boundary continuous, and `"linear"` is accepted as an alias so that code written against one package reads the other. `"background"` assumes the images are registered, which radiographs of one protocol are and photographs of arbitrary scenes are not.
 
@@ -185,15 +185,15 @@ Every constant reads the statistic of the channel it is writing into rather than
 
 Two further controls apply to every operator. `n_replicas` averages the response over several substitutions, which approximates the expectation the method is defined on rather than the output at one arbitrary point, at a cost that grows linearly with the sample. `taper` blends the substituted values into the surrounding image across a band of pixels measured inwards from the border of a segment, which removes the sharp contour a flat patch introduces. Convolutional models react strongly to edges, so part of a measured degradation can be a boundary artifact rather than lost evidence, and the default of zero reproduces the published behavior. A band wider than the interior of the smallest segment is announced, since those segments would never be fully neutralized.
 
-No single operator fits every problem. Setting `marginalization="auto"` runs the search once per candidate and keeps the highest degradation score, which treats the choice as a per instance hyperparameter. The candidates are the cheap class agnostic operators, so the reading of the ranking never changes without the user asking, and `explanation.perturbation["trials"]` reports what each of them achieved.
+No single operator fits every problem. Setting `marginalization="auto"` runs the search once per candidate and keeps the highest degradation score, which treats the choice as a per-instance hyperparameter. The candidates are the cheap class-agnostic operators, so the reading of the ranking never changes without the user asking, and `explanation.perturbation["trials"]` reports what each of them achieved.
 
 ## The noise region and the recovery of fidelity
 
 Once the informative segments are gone, marginalizing what remains often pushes the response back towards its original state. The MoRF curve then climbs after its minimum, and the tail of the ranking that follows that minimum carries no evidence. The segment is reported by `noise_onset` and `noise_features`, and it also appears in the printed summary. Segments inside it receive no importance weight, since the ranking says nothing about them, and the overlay figures leave them bare.
 
-On images the recovery is the rule rather than the exception, and the demonstration devotes a section to measuring it. The last point of a curve is the response to an image in which every segment has been replaced, and such an image is uninformative only when the model does not read it as a member of the explained class. Whether it does depends on the operator. A image replaced everywhere by one constant, or blurred everywhere, is smooth and bright and outside anything the network was trained on, so its response there is arbitrary rather than low, and on the bundled problem it returns almost to the original confidence. An image assembled from the pixels of other patients, which is what `background` and `nearest_unlike` produce, is a genuine radiograph the network classifies on its own merits, and its curve stays down.
+On images, the recovery is the rule rather than the exception, and the demonstration devotes a section to measuring it. The last point of a curve is the response to an image in which every segment has been replaced, and such an image is uninformative only when the model does not read it as a member of the explained class. Whether it does depends on the operator. An image replaced everywhere by one constant, or blurred everywhere, is smooth and bright and outside anything the network was trained on, so its response there is arbitrary rather than low, and on the bundled problem it returns almost to the original confidence. An image assembled from the pixels of other patients, which is what `background` and `nearest_unlike` produce, is a genuine radiograph the network classifies on its own merits, and its curve stays down.
 
-One practical warning follows. The operators whose curves recover most also tend to produce the highest degradation scores while never changing the predicted class at any step, which shows up as a sparsity rate of one. A score obtained that way rests on the gap between two curves rather than on a decision that was actually overturned, so it has to be read beside the sparsity rate and the noise onset rather than on its own.
+One practical warning follows. The operators whose curves recover most also tend to produce the highest degradation scores while never changing the predicted class at any step, which shows up as a sparsity rate of one. A score obtained that way rests on the gap between two curves rather than on a decision that was actually overturned, so it has to be read alongside the sparsity rate and the noise onset rather than on its own.
 
 ## The search
 
@@ -212,7 +212,7 @@ A fitted model is always required, since the explanation describes that model an
 | PyTorch | `torch.nn.Module`, evaluated under `no_grad` on the device of its parameters |
 | `torchvision`, `timm`, `transformers` | the same PyTorch branch, since every image model of the three is a module |
 
-Keras is tested before PyTorch on purpose. Under the PyTorch backend a Keras model also inherits from `torch.nn.Module`, so the reverse order would drive it through the PyTorch calling convention and bypass its own preprocessing.
+Keras is tested before PyTorch on purpose. Under the PyTorch backend, a Keras model also inherits from `torch.nn.Module`, so the reverse order would drive it through the PyTorch calling convention and bypass its own preprocessing.
 
 Two conventions are resolved once, on a probe batch drawn from the training data, and then held fixed. The output convention states whether the raw output already lies on the probability simplex, and a softmax is applied only when it does not. The channel layout states whether the model expects the channel axis before the two spatial axes, as PyTorch does, or after them, as Keras does. Both are detected by default and both can be stated explicitly when the probe would be ambiguous, which happens when an image has as many channels as it has rows.
 
@@ -268,7 +268,7 @@ explainer = SOFIExplainer(
 )
 ```
 
-The following combinations were verified end to end against this package. Pretrained weights change nothing in the plumbing, since the wrapper reads outputs alone.
+The following combinations were verified end-to-end against this package. Pretrained weights change nothing in the plumbing, since the wrapper reads outputs alone.
 
 | Library | Architectures verified |
 | --- | --- |
@@ -330,7 +330,7 @@ Two conventions govern every figure that draws an image.
 
 The first concerns resolution. A classifier receives a small square, cropped and downscaled, because that is what it was trained on. A reader does not, and a partition drawn over a downscaled image hides the detail the explanation is about. Passing the original through `display` draws the partition at the resolution a reader can see, and the label map is carried onto it by nearest neighbour sampling, so no border moves and no segment appears or disappears. An `Experiment` built with `display` supplies it to every figure automatically.
 
-The second concerns what an overlay means. Marginalizing a segment replaces its content, and drawing the replacement would show the mechanism rather than the finding. The segments are therefore painted over the untouched image and outlined, and the color carries no magnitude. By default the segments painted are those whose cumulative marginalization changes the predicted class, which is precisely the claim a sparse explanation makes.
+The second concerns what an overlay means. Marginalizing a segment replaces its content, and drawing the replacement would show the mechanism rather than the finding. The segments are therefore painted over the untouched image and outlined, and the color carries no magnitude. By default, the segments painted are those whose cumulative marginalization changes the predicted class, which is precisely the claim a sparse explanation makes.
 
 Nothing is fixed for a session, so every figure carries its own settings and none of them leaves a trace on the next.
 
@@ -377,7 +377,7 @@ explanation.plot_animation(filename="explanation", formats=("gif", "mp4"))
 
 Building the objective for an image costs two sweeps of the segments, one to marginalize each segment alone, which produces the greedy ordering and the anchors, and one to follow that ordering cumulatively. Every candidate proposed afterwards requires the two curves, so an evaluation costs twice a single curve. A curve issues one batched query, split into chunks of `batch_size` when one is given, and a candidate produced by a swap at positions `i` and `j` with `i` below `j` reuses the first `i` points of the MoRF curve of the incumbent and the first `n - 1 - j` points of its LeRF curve, since the reversed ranking is affected at mirrored positions. Only the affected tails are recomputed, and the result is identical to a full evaluation. Replicas multiply every query by their count.
 
-Segment count drives everything, so it is the first knob to turn when a run is slow. Forty segments on a 96 pixel image explain a small convolutional network in seconds, while two hundred on a base transformer at 224 pixels will not.
+Segment count drives everything, so it is the first knob to turn when a run is slow. Forty segments on a 96-pixel image explain a small convolutional network in seconds, while two hundred on a base transformer at 224 pixels will not.
 
 Every run is reproducible from `random_state`, which controls the operator draws, the swap operator and the restarts. No internal state is modified during a search, so repeated calls on the same image return the same explanation.
 
@@ -387,8 +387,8 @@ Every run is reproducible from `random_state`, which controls the operator draws
 | --- | --- | --- | --- |
 | `model` | required | A fitted classifier of any of the four families, or any object whose output method is named through `output_fn`. | The explainer is agnostic to the model family and only queries its outputs. A model is always required, since the explanation describes it. |
 | `X_train` | required | Array shaped `(n, height, width)` or `(n, height, width, n_channels)`, already preprocessed as the model expects. | Source of the marginalization values. The images explained afterwards never contribute statistics. |
-| `y_train` | `None` | `None` or an array of labels. | Needed by the class directed operators alone, which draw their substitution from the classes other than the one being explained. |
-| `output_fn` | `None` | `None`, the name of a method of the model, or a callable receiving the batch. | Names the method that produces the outputs, for the cases where the detection would pick the wrong one. A callable takes full responsibility for the conversion of the input. |
+| `y_train` | `None` | `None` or an array of labels. | Needed by the class-directed operators alone, which draw their substitution from the classes other than the one being explained. |
+| `output_fn` | `None` | `None`, the name of a method of the model, or a callable receiving the batch. | Names the method that produces the outputs, for cases where the detection would pick the wrong one. A callable takes full responsibility for the conversion of the input. |
 | `output` | `"auto"` | `"auto"`, `"proba"`, `"logits"`. | Whether the model already returns probabilities. `"auto"` lets a probe batch decide, and a softmax is applied only when the raw output leaves the probability simplex. |
 | `channels_first` | `"auto"` | `"auto"`, `True`, `False`. | Whether the model expects the channel axis before the two spatial axes. `"auto"` tries both orientations on the probe. |
 | `classes` | `None` | `None` or a sequence of labels. | Class labels in the order of the probability columns, used for reporting alone. Read from `classes_` or from `config.id2label` when available. |
@@ -445,7 +445,7 @@ Every run is reproducible from `random_state`, which controls the operator draws
 | `drops` | Degradation attributable to each step of the MoRF curve |
 | `sparsity_point`, `sparsity_rate`, `sparsity_probability` | Where the MoRF order changes the predicted class, and how confident the model was there |
 | `lerf_sparsity_point`, `lerf_sparsity_rate` | Where the reversed order changes it, which should be far later |
-| `importances` | Rank based importance in the unit interval, with the noise region excluded |
+| `importances` | Rank-based importance in the unit interval, with the noise region excluded |
 | `noise_onset`, `noise_features` | Start of the segment where fidelity recovers, and the segments it holds |
 | `interpretation`, `class_directed` | What this ranking means, given the operator that produced it |
 | `modularity_gap` | Departure from the assumption of Theorem 3 |
@@ -504,21 +504,11 @@ The two packages are deliberately parallel. Module layout, parameter names, the 
 
 ## Data
 
-The bundled sample under `sofiimg/datasets/pneumonia` holds 3,166 images from the paediatric chest X-ray collection of Guangzhou Women and Children's Medical Center, drawn from a public mirror released under a CC0 waiver and converted to 224 pixel grayscale JPEG, balanced between normal and pneumonia and split 2,532 for training and 634 for testing. The lung masks under `sofiimg/datasets/pneumonia_masks` are the human-drawn polygons that v7 Labs released for the same images as part of its COVID-19 X-ray dataset, rasterized to the same resolution. Both are included so that the demonstration runs offline and neither carries a clinical warranty of any kind.
+The bundled sample under `sofiimg/datasets/pneumonia` holds 3,166 images from the paediatric chest X-ray collection of Guangzhou Women and Children's Medical Center, drawn from a public mirror released under a CC0 waiver and converted to 224-pixel grayscale JPEG, balanced between normal and pneumonia and split into 2,532 for training and 634 for testing. The lung masks under `sofiimg/datasets/pneumonia_masks` are the human-drawn polygons that v7 Labs released for the same images as part of its COVID-19 X-ray dataset, rasterized to the same resolution. Both are included so that the demonstration runs offline and neither carries a clinical warranty of any kind.
 
 ## Citation
 
 ```bibtex
-@article{grau2026sofits,
-  title   = {Sparseness-Optimized Feature Importance for Time Series Classification},
-  author  = {Grau, Isel and N{\'a}poles, Gonzalo and Jastrzebska, Agnieszka and Salgueiro, Yamisleydi},
-  journal = {IEEE Access},
-  volume  = {14},
-  pages   = {29874--29893},
-  year    = {2026},
-  doi     = {10.1109/ACCESS.2026.3667092}
-}
-
 @inproceedings{grau2024sofi,
   title     = {Sparseness-Optimized Feature Importance},
   author    = {Grau, Isel and N{\'a}poles, Gonzalo},
