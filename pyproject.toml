@@ -1,0 +1,54 @@
+[build-system]
+requires = ["setuptools>=64"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "sofi-image"
+version = "1.0.0"
+description = "Sparseness Optimized Feature Importance for image classification"
+readme = "README.md"
+requires-python = ">=3.9"
+license = { file = "LICENSE" }
+authors = [
+    { name = "Isel Grau" },
+    { name = "Gonzalo Napoles" },
+    { name = "Agnieszka Jastrzebska" },
+    { name = "Yamisleydi Salgueiro" },
+]
+keywords = [
+    "explainable ai",
+    "image classification",
+    "computer vision",
+    "feature importance",
+    "interpretability",
+    "sparse explanations",
+    "superpixels",
+]
+classifiers = [
+    "Intended Audience :: Science/Research",
+    "License :: OSI Approved :: MIT License",
+    "Programming Language :: Python :: 3",
+    "Topic :: Scientific/Engineering :: Artificial Intelligence",
+    "Topic :: Scientific/Engineering :: Image Processing",
+]
+dependencies = [
+    "numpy>=1.23",
+    "pandas>=1.5",
+    "scipy>=1.9",
+    "scikit-image>=0.20",
+    "pillow>=9.0",
+    "matplotlib>=3.6",
+    "seaborn>=0.12",
+    "tqdm>=4.64",
+    "imageio-ffmpeg>=0.4",
+]
+
+[project.optional-dependencies]
+demo = ["tensorflow>=2.16", "keras>=3.0", "ipykernel", "notebook"]
+torch = ["torch>=2.0", "torchvision>=0.15", "timm>=0.9", "transformers>=4.30"]
+
+[tool.setuptools.packages.find]
+include = ["sofiimg*"]
+
+[tool.setuptools.package-data]
+sofiimg = ["datasets/*/*/*/*.jpeg", "datasets/*/*/*/*.png"]
