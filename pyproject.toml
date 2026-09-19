@@ -13,10 +13,6 @@ authors = [
     { name = "Isel Grau" },
     { name = "Gonzalo Napoles" }
 ]
-[project.urls]
-Homepage = "https://github.com/igraugar/sofi-image"
-Repository = "https://github.com/igraugar/sofi-image"
-Issues = "https://github.com/igraugar/sofi-image/issues"
 keywords = [
     "explainable ai",
     "image classification",
@@ -44,6 +40,11 @@ dependencies = [
     "tqdm>=4.64",
     "imageio-ffmpeg>=0.4",
 ]
+
+[project.urls]
+Homepage = "https://github.com/igraugar/sofi-image"
+Repository = "https://github.com/igraugar/sofi-image"
+Issues = "https://github.com/igraugar/sofi-image/issues"
 
 [project.optional-dependencies]
 demo = ["tensorflow>=2.16", "keras>=3.0", "ipykernel", "notebook"]
