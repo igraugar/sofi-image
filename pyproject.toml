@@ -11,10 +11,12 @@ requires-python = ">=3.9"
 license = { file = "LICENSE" }
 authors = [
     { name = "Isel Grau" },
-    { name = "Gonzalo Napoles" },
-    { name = "Agnieszka Jastrzebska" },
-    { name = "Yamisleydi Salgueiro" },
+    { name = "Gonzalo Napoles" }
 ]
+[project.urls]
+Homepage = "https://github.com/igraugar/sofi-image"
+Repository = "https://github.com/igraugar/sofi-image"
+Issues = "https://github.com/igraugar/sofi-image/issues"
 keywords = [
     "explainable ai",
     "image classification",

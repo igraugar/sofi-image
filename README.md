@@ -4,15 +4,33 @@ Sparseness Optimized Feature Importance (SOFI) is a model agnostic, declarative 
 
 ## Installation
 
+Install the latest release from PyPI:
+
 ```bash
-git clone https://github.com/<user>/sofi-image.git
-cd sofi-image
-pip install -e .
+pip install sofi-image
 ```
 
 Python 3.9 or later is required. Everything the explainer and its figures need is installed with it, including `scikit-image` for the SLIC segmentation, `scipy`, `pillow`, `matplotlib`, `seaborn`, `pandas`, `tqdm` and `imageio-ffmpeg` for the animation. Neither PyTorch nor TensorFlow is a dependency, since the package works with both and imports neither until the model given to it requires one.
 
-Two extras cover the frameworks. `pip install -e ".[demo]"` adds TensorFlow, Keras and a notebook kernel, which is what `SOFI_demo.ipynb` needs. `pip install -e ".[torch]"` adds PyTorch together with `torchvision`, `timm` and `transformers`.
+Two extras cover the frameworks. The demo extra adds TensorFlow, Keras and a notebook kernel:
+
+```bash
+pip install "sofi-image[demo]"
+```
+
+The torch extra adds PyTorch together with `torchvision`, `timm` and `transformers`:
+
+```bash
+pip install "sofi-image[torch]"
+```
+
+For a development checkout, install the package in editable mode instead:
+
+```bash
+git clone https://github.com/igraugar/sofi-image.git
+cd sofi-image
+pip install -e .
+```
 
 ## Quick start
 
